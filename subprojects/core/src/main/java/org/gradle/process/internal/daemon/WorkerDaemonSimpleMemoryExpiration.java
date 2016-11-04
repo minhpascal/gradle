@@ -18,6 +18,9 @@ package org.gradle.process.internal.daemon;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
@@ -25,6 +28,7 @@ import org.gradle.process.internal.daemon.health.memory.MemoryInfo;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 
 /**
@@ -47,19 +51,52 @@ public class WorkerDaemonSimpleMemoryExpiration {
     }
 
     public void eventuallyExpireDaemons(DaemonForkOptions requiredForkOptions, List<WorkerDaemonClient> idleClients, List<WorkerDaemonClient> allClients) {
-        long freePhysicalMemory = memoryInfo.getFreePhysicalMemory();
-        long anticipatedFreeMemory = freePhysicalMemory - parseHeapSize(memoryInfo, requiredForkOptions.getMaxHeapSize());
+        long requiredMaxHeapSize = parseHeapSize(memoryInfo, requiredForkOptions.getMaxHeapSize());
+        long anticipatedFreeMemory = memoryInfo.getFreePhysicalMemory() - requiredMaxHeapSize;
         if (anticipatedFreeMemory < memoryThresholdInBytes) {
-            Iterator<WorkerDaemonClient> it = idleClients.iterator();
-            while (it.hasNext()) {
-                WorkerDaemonClient client = it.next();
+            if (expireDuplicateCompatibles(idleClients, allClients)) {
+                anticipatedFreeMemory = memoryInfo.getFreePhysicalMemory() - requiredMaxHeapSize;
+            }
+            if (anticipatedFreeMemory < memoryThresholdInBytes) {
+                expireLeastRecentlyUsedUntilEnoughFreeMemory(idleClients, allClients, anticipatedFreeMemory);
+            }
+        }
+    }
+
+    private boolean expireDuplicateCompatibles(List<WorkerDaemonClient> idleClients, List<WorkerDaemonClient> allClients) {
+        boolean expired = false;
+        ListIterator<WorkerDaemonClient> it = idleClients.listIterator(idleClients.size());
+        List<WorkerDaemonClient> compatibilityUniques = Lists.newArrayListWithCapacity(idleClients.size());
+        while (it.hasPrevious()) {
+            final WorkerDaemonClient client = it.previous();
+            boolean already = Iterables.any(compatibilityUniques, new Predicate<WorkerDaemonClient>() {
+                @Override
+                public boolean apply(WorkerDaemonClient candidate) {
+                    return candidate.isCompatibleWith(client.getForkOptions());
+                }
+            });
+            if (already) {
                 allClients.remove(client);
                 it.remove();
                 client.stop();
-                anticipatedFreeMemory += parseHeapSize(memoryInfo, client.getForkOptions().getMaxHeapSize());
-                if (anticipatedFreeMemory >= memoryThresholdInBytes) {
-                    break;
-                }
+                expired = true;
+            } else {
+                compatibilityUniques.add(client);
+            }
+        }
+        return expired;
+    }
+
+    private void expireLeastRecentlyUsedUntilEnoughFreeMemory(List<WorkerDaemonClient> idleClients, List<WorkerDaemonClient> allClients, long anticipatedFreeMemory) {
+        Iterator<WorkerDaemonClient> it = idleClients.iterator();
+        while (it.hasNext()) {
+            WorkerDaemonClient client = it.next();
+            allClients.remove(client);
+            it.remove();
+            client.stop();
+            anticipatedFreeMemory += parseHeapSize(memoryInfo, client.getForkOptions().getMaxHeapSize());
+            if (anticipatedFreeMemory >= memoryThresholdInBytes) {
+                break;
             }
         }
     }
