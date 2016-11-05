@@ -18,7 +18,6 @@ package org.gradle.process.internal.daemon
 
 import org.gradle.process.internal.daemon.health.memory.MemoryInfo
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class WorkerDaemonSimpleMemoryExpirationTest extends Specification {
 
@@ -169,25 +168,6 @@ class WorkerDaemonSimpleMemoryExpirationTest extends Specification {
         then:
         idleClients == [client4]
         allClients == [client4]
-    }
-
-    def "can parse maximum heap null"() {
-        expect:
-        WorkerDaemonSimpleMemoryExpiration.parseHeapSize(memoryInfo, null) == WorkerDaemonSimpleMemoryExpiration.getDefaultMaxHeap(memoryInfo)
-    }
-
-    @Unroll
-    def "can parse maximum heap '#maxHeap'"() {
-        given:
-        WorkerDaemonSimpleMemoryExpiration.parseHeapSize(memoryInfo, maxHeap) == maxHeapBytes
-
-        where:
-        maxHeap | maxHeapBytes
-        ''      | WorkerDaemonSimpleMemoryExpiration.getDefaultMaxHeap(Stub(MemoryInfo))
-        '512m'  | mb(512)
-        '768M'  | mb(768)
-        '64g'   | gb(64)
-        '4G'    | gb(4)
     }
 
     private static long gb(long gb) {
