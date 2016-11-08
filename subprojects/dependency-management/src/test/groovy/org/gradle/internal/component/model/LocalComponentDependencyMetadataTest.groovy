@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.model
 
+import org.gradle.api.Attribute
+import org.gradle.api.AttributeContainer
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -50,10 +52,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata) {
-            isQueryOrResolveAllowed() >> true
+            isCanBeResolved() >> true
         }
         def toConfig = Stub(ConfigurationMetadata) {
-            isConsumeOrPublishAllowed() >> true
+            isCanBeConsumed() >> true
         }
         fromConfig.hierarchy >> ["from"]
 
@@ -72,7 +74,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getConfigurationNames() >> ['foo', 'bar']
         }
         def fromConfig = Stub(LocalConfigurationMetadata) {
-            getAttributes() >> queryAttributes
+            getAttributes() >> attributes(queryAttributes)
         }
         fromConfig.hierarchy >> ["from"]
         def defaultConfig = Stub(LocalConfigurationMetadata) {
@@ -80,13 +82,13 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
-            getAttributes() >> [key: 'something']
-            isConsumeOrPublishAllowed() >> true
+            getAttributes() >> attributes(key: 'something')
+            isCanBeConsumed() >> true
         }
         def toBarConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'bar'
-            getAttributes() >> [key: 'something else']
-            isConsumeOrPublishAllowed() >> true
+            getAttributes() >> attributes(key: 'something else')
+            isCanBeConsumed() >> true
         }
 
         given:
@@ -149,5 +151,13 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def config = Stub(ConfigurationMetadata)
         config.hierarchy >> ([name] as Set) + (parents as Set)
         return config
+    }
+
+    private AttributeContainer attributes(Map<String, String> src) {
+        Mock(AttributeContainer) {
+            isEmpty() >> src.isEmpty()
+            getAttribute(_) >> { args-> src[args[0].name]}
+            keySet() >> src.keySet().collect { new Attribute(it, String)}
+        }
     }
 }
