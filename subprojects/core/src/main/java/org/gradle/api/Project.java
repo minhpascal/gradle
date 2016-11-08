@@ -1494,11 +1494,4 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     SoftwareComponentContainer getComponents();
-
-    /**
-     * Provides access to worker daemon process utility methods, for example to start new daemon processes that run specific operations.
-     *
-     * @return A service object that can be used to start daemon processes.
-     */
-    WorkerDaemonService getWorkerDaemons();
 }

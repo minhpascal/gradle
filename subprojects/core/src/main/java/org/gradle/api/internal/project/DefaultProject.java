@@ -1080,10 +1080,4 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public void fireDeferredConfiguration() {
         getDeferredProjectConfiguration().fire();
     }
-
-    @Inject
-    public WorkerDaemonService getWorkerDaemons() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
 }
