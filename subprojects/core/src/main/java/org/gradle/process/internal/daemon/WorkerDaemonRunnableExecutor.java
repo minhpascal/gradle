@@ -25,8 +25,8 @@ import java.io.Serializable;
 
 public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<Runnable> {
 
-    WorkerDaemonRunnableExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends Runnable> implementationClass) {
-        super(workerDaemonFactory, fileResolver, implementationClass);
+    WorkerDaemonRunnableExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends Runnable> implementationClass, Class<? extends WorkerDaemonProtocol> serverImplementationClass) {
+        super(workerDaemonFactory, fileResolver, implementationClass, serverImplementationClass);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
         });
         final DaemonForkOptions daemonForkOptions = toDaemonOptions(getImplementationClass(), paramTypes, getForkOptions(), getClasspath(), getSharedPackages());
 
-        WorkerDaemon daemon = getWorkerDaemonFactory().getDaemon(getForkOptions().getWorkingDir(), daemonForkOptions);
+        WorkerDaemon daemon = getWorkerDaemonFactory().getDaemon(getServerImplementationClass(), getForkOptions().getWorkingDir(), daemonForkOptions);
         daemon.execute(daemonRunnable, spec);
     }
 

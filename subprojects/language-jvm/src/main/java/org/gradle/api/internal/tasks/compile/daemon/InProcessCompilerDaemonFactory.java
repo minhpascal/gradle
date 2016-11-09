@@ -32,6 +32,7 @@ import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.process.internal.daemon.WorkSpec;
 import org.gradle.process.internal.daemon.WorkerDaemonAction;
+import org.gradle.process.internal.daemon.WorkerDaemonProtocol;
 import org.gradle.process.internal.daemon.WorkerDaemonResult;
 import org.gradle.process.internal.daemon.WorkerDaemon;
 import org.gradle.process.internal.daemon.WorkerDaemonFactory;
@@ -54,7 +55,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
     }
 
     @Override
-    public WorkerDaemon getDaemon(File workingDir, final DaemonForkOptions forkOptions) {
+    public WorkerDaemon getDaemon(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
         return new WorkerDaemon() {
             public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> compiler, T spec) {
                 ClassLoader groovyClassLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));

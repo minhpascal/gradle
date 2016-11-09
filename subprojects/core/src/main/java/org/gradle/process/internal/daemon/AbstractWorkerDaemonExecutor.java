@@ -37,12 +37,14 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
     private final Set<File> classpath = Sets.newLinkedHashSet();
     private final Set<String> sharedPackages = Sets.newLinkedHashSet();
     private final Class<? extends T> implementationClass;
+    private final Class<? extends WorkerDaemonProtocol> serverImplementationClass;
     private Serializable[] params;
 
-    public AbstractWorkerDaemonExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends T> implementationClass) {
+    public AbstractWorkerDaemonExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends T> implementationClass, Class<? extends WorkerDaemonProtocol> serverImplementationClass) {
         this.workerDaemonFactory = workerDaemonFactory;
         this.javaForkOptions = new DefaultJavaForkOptions(fileResolver);
         this.implementationClass = implementationClass;
+        this.serverImplementationClass = serverImplementationClass;
     }
 
     @Override
@@ -86,6 +88,10 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
 
     protected WorkerDaemonFactory getWorkerDaemonFactory() {
         return workerDaemonFactory;
+    }
+
+    public Class<? extends WorkerDaemonProtocol> getServerImplementationClass() {
+        return serverImplementationClass;
     }
 
     static DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath, Iterable<String> sharedPackages) {
