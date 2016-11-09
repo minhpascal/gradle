@@ -21,6 +21,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.CollectionUtils;
 
+import java.io.Serializable;
+
 public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<Runnable> {
 
     WorkerDaemonRunnableExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends Runnable> implementationClass) {
@@ -44,13 +46,13 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
     }
 
     private static class ParamSpec implements WorkSpec {
-        final Object[] params;
+        final Serializable[] params;
 
-        ParamSpec(Object[] params) {
+        ParamSpec(Serializable[] params) {
             this.params = params;
         }
 
-        public Object[] getParams() {
+        public Serializable[] getParams() {
             return params;
         }
     }
@@ -65,7 +67,7 @@ public class WorkerDaemonRunnableExecutor extends AbstractWorkerDaemonExecutor<R
         @Override
         public WorkerDaemonResult execute(ParamSpec spec) {
             try {
-                Runnable runnable = DirectInstantiator.instantiate(runnableClass, spec.getParams());
+                Runnable runnable = DirectInstantiator.instantiate(runnableClass, (Object[])spec.getParams());
                 runnable.run();
                 return new WorkerDaemonResult(true, null);
             } catch (Throwable t) {

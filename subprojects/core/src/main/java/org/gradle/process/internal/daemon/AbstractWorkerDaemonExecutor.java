@@ -80,7 +80,7 @@ public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExe
         return implementationClass;
     }
 
-    protected Object[] getParams() {
+    protected Serializable[] getParams() {
         return params;
     }
 
