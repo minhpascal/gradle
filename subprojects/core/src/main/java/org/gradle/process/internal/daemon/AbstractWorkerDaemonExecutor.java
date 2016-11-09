@@ -18,24 +18,17 @@ package org.gradle.process.internal.daemon;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.daemon.WorkerDaemonExecutor;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractWorkerDaemonExecutor<T> implements WorkerDaemonExecutor<T> {
