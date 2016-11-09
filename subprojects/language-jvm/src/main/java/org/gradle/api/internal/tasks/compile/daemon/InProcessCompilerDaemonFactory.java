@@ -108,7 +108,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         public Object call() throws Exception {
             // We have to initialize this here because we're in an isolated classloader
             NativeServices.initialize(gradleUserHome);
-            return new WorkerDaemonResult(compiler.execute(spec).getDidWork(), null);
+            return compiler.execute(spec);
         }
     }
 }
